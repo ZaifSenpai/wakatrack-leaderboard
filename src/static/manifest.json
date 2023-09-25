@@ -1,7 +1,7 @@
 {
-  "name": "React Extension",
-  "description": "Chrome Extension in React!",
-  "version": "1.0.0",
+  "name": "WakaTrack Leaderboard",
+  "description": "A leaderboard for the WakaTrack extension",
+  "version": "0.1.0",
   "manifest_version": 3,
   "icons": {
     "16": "icon.png",
@@ -10,18 +10,23 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "React Extension",
+    "default_title": "WakaTrack Leaderboard",
     "default_icon": "icon.png"
   },
-  "permissions": ["storage"],
-  "options_page": "options.html",
+  "permissions": [
+    "storage"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["contentScript.js"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "contentScript.js"
+      ]
     }
   ]
 }
