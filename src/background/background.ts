@@ -26,20 +26,28 @@ import * as Constants from "../utils/constants";
       method: "GET",
     };
 
-    const response = await fetch(
-      Constants.WAKATIME_LEADERS_URL,
-      requestOptions
-    ).then((r) => r.json());
+    const response = await fetch(Constants.WAKATIME_LEADERS_URL, requestOptions)
+      .then((r) => r.json())
+      .catch((e) => {
+        console.error(e);
 
-    if (response.current_user) {
-      Storage.set({ currentUserData: response.current_user });
+        return undefined;
+      });
 
+    if (response.current_user?.rank) {
       const { leaderboardData = {} } = await Storage.get(["leaderboardData"]);
-
       const rank = response.current_user.rank;
       const username = response.current_user.user.username;
 
       const stats = leaderboardData[username] || [];
+
+      Storage.set({
+        currentUserData: {
+          ...response.current_user,
+          lastRank:
+            stats.length > 0 ? stats[stats.length - 1].value : undefined,
+        },
+      });
 
       if (rank) {
         if (stats.length > 0) {
@@ -71,6 +79,12 @@ import * as Constants from "../utils/constants";
     const { currentUserData } = await Storage.get(["currentUserData"]);
 
     if (currentUserData?.rank !== undefined) {
+      if (currentUserData.lastRank < currentUserData.rank) {
+        actionApi.setBadgeBackgroundColor({ color: "#F44336" });
+      } else {
+        actionApi.setBadgeBackgroundColor({ color: "#0AD69F" });
+      }
+
       actionApi.setBadgeText({
         text: currentUserData.rank.toString(),
       });
