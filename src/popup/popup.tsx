@@ -49,7 +49,9 @@ const Popup: React.FC<{}> = () => {
       // Create Y-axis
       const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {
-          renderer: am5xy.AxisRendererY.new(root, {}),
+          renderer: am5xy.AxisRendererY.new(root, {
+            inversed: true,
+          }),
         })
       );
 
@@ -89,6 +91,15 @@ const Popup: React.FC<{}> = () => {
         );
 
         series.strokes.template.set("strokeWidth", 2);
+
+        series.bullets.push(function() {
+          return am5.Bullet.new(root, {
+            sprite: am5.Circle.new(root, {
+              radius: 5,
+              fill: series.get("fill")
+            })
+          });
+        });
 
         const tooltip = series.get("tooltip");
         tooltip?.label.set("text", "{valueX.formatDate()}: [bold]{valueY}");
