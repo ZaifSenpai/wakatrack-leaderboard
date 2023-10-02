@@ -27,7 +27,7 @@ const Popup: React.FC<{}> = () => {
   }, []);
 
   useEffect(() => {
-    const chartData =
+    let chartData =
       leaderboardData && userData
         ? leaderboardData[userData.user.username]
         : undefined;
@@ -87,24 +87,33 @@ const Popup: React.FC<{}> = () => {
             valueYField: field,
             valueXField: "date",
             tooltip: am5.Tooltip.new(root, {}),
+            connect: false,
           })
         );
 
         series.strokes.template.set("strokeWidth", 2);
 
-        series.bullets.push(function() {
+        series.bullets.push(() => {
           return am5.Bullet.new(root, {
             sprite: am5.Circle.new(root, {
               radius: 5,
-              fill: series.get("fill")
-            })
+              fill: series.get("fill"),
+            }),
           });
         });
 
         const tooltip = series.get("tooltip");
         tooltip?.label.set("text", "{valueX.formatDate()}: [bold]{valueY}");
 
-        series.data.setAll(chartData || []);
+        chartData = (chartData || []).map((item: any) => {
+          if (item.value === null) {
+            delete item.value;
+          }
+
+          return item;
+        });
+
+        series.data.setAll(chartData);
 
         return series;
       }

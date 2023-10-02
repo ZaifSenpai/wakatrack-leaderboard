@@ -34,7 +34,7 @@ import * as Constants from "../utils/constants";
         return undefined;
       });
 
-    if (response.current_user?.rank) {
+    if (response.current_user) {
       const { leaderboardData = {} } = await Storage.get(["leaderboardData"]);
       const rank = response.current_user.rank;
       const username = response.current_user.user.username;
@@ -49,27 +49,35 @@ import * as Constants from "../utils/constants";
         },
       });
 
-      if (rank) {
-        if (stats.length > 0) {
-          const lastStat = stats[stats.length - 1];
+      if (stats.length > 0) {
+        const lastStat = stats[stats.length - 1];
 
-          if (lastStat.value === rank) {
+        if (lastStat.value === rank) {
+          const lastStatDate = new Date(lastStat.date);
+          const currentDate = new Date();
+
+          // If the last stat was recorded today, don't add a new one
+          if (
+            lastStatDate.getDate() === currentDate.getDate() &&
+            lastStatDate.getMonth() === currentDate.getMonth() &&
+            lastStatDate.getFullYear() === currentDate.getFullYear()
+          ) {
             return;
           }
         }
-
-        stats.push({
-          date: Date.now(),
-          value: rank,
-        });
-
-        Storage.set({
-          leaderboardData: {
-            ...leaderboardData,
-            [username]: stats,
-          },
-        });
       }
+
+      stats.push({
+        date: Date.now(),
+        value: rank,
+      });
+
+      Storage.set({
+        leaderboardData: {
+          ...leaderboardData,
+          [username]: stats,
+        },
+      });
 
       updateBadgeText();
     }
@@ -78,16 +86,23 @@ import * as Constants from "../utils/constants";
   async function updateBadgeText() {
     const { currentUserData } = await Storage.get(["currentUserData"]);
 
-    if (currentUserData?.rank !== undefined) {
-      if (currentUserData.lastRank < currentUserData.rank) {
+    if (currentUserData !== undefined) {
+      if (currentUserData.rank === null) {
         actionApi.setBadgeBackgroundColor({ color: "#F44336" });
+        actionApi.setBadgeText({
+          text: "!",
+        });
       } else {
-        actionApi.setBadgeBackgroundColor({ color: "#0AD69F" });
-      }
+        if (currentUserData.lastRank < currentUserData.rank) {
+          actionApi.setBadgeBackgroundColor({ color: "#F44336" });
+        } else {
+          actionApi.setBadgeBackgroundColor({ color: "#0AD69F" });
+        }
 
-      actionApi.setBadgeText({
-        text: currentUserData.rank.toString(),
-      });
+        actionApi.setBadgeText({
+          text: currentUserData.rank.toString(),
+        });
+      }
     } else {
       actionApi.setBadgeText({
         text: "",
