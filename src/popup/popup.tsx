@@ -4,9 +4,11 @@ import "./popup.css";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
+import { Box, Container, Grid, Link, Typography } from "@mui/material";
+import * as Constants from "../utils/constants";
 
 const Popup: React.FC<{}> = () => {
-  const { storage: storageApi } = chrome;
+  const { storage: storageApi, runtime: runtimeApi, tabs: tabsApi } = chrome;
 
   const { sync: Storage } = storageApi;
 
@@ -161,11 +163,35 @@ const Popup: React.FC<{}> = () => {
     }
   }, [leaderboardData]);
 
+  function openLeaderboard() {
+    tabsApi.create({
+      url: Constants.WAKATIME_LEADERS + (userData?.page ? userData.page : ""),
+    });
+  }
+
   return (
-    <div>
-      <div id="chartcontrols"></div>
-      <div id="chartdiv"></div>
-    </div>
+    <Container>
+      <Grid
+        container
+        justifyContent={"space-between"}
+        sx={{
+          mx: 3,
+        }}
+      >
+        <Typography variant="h6">{runtimeApi.getManifest().name}</Typography>
+        <Link component="button" onClick={openLeaderboard}>
+          Open Leaderboard
+        </Link>
+      </Grid>
+      <Typography
+        sx={{
+          mx: 3,
+        }}
+      >
+        Rank: {userData?.rank || "None"}
+      </Typography>
+      <Box id="chartdiv"></Box>
+    </Container>
   );
 };
 
