@@ -175,7 +175,7 @@ const Popup: React.FC<{}> = () => {
         container
         justifyContent={"space-between"}
         sx={{
-          mx: 3,
+          pt: 2,
         }}
       >
         <Typography variant="h6">{runtimeApi.getManifest().name}</Typography>
@@ -183,14 +183,28 @@ const Popup: React.FC<{}> = () => {
           Open Leaderboard
         </Link>
       </Grid>
-      <Typography
-        sx={{
-          mx: 3,
-        }}
-      >
-        Rank: {userData?.rank || "None"}
-      </Typography>
-      <Box id="chartdiv"></Box>
+      {userData ? (
+        <Typography
+          sx={{
+            fontSize: "0.8rem",
+            color: "#666",
+          }}
+        >
+          Rank: {userData?.rank || "None"}
+        </Typography>
+      ) : (
+        <Link
+          href={Constants.WAKATIME_LOGIN}
+          target="_blank"
+          sx={{
+            mx: 3,
+          }}
+        >
+          Login
+        </Link>
+      )}
+
+      <Box id="chartdiv" className={userData ? "" : "empty"}></Box>
     </Container>
   );
 };
