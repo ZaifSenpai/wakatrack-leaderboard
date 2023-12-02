@@ -1,7 +1,12 @@
 import * as Constants from "../utils/constants";
 
 ((chrome) => {
-  const { alarms: alarmsApi, storage: storageApi, action: actionApi } = chrome;
+  const {
+    alarms: alarmsApi,
+    storage: storageApi,
+    action: actionApi,
+    runtime: runtimeApi,
+  } = chrome;
 
   const { sync: Storage } = storageApi;
 
@@ -13,6 +18,7 @@ import * as Constants from "../utils/constants";
   chrome.runtime.onInstalled.addListener(() => {
     addLeaderboardAlarm();
     updateBadgeText();
+    fetchLeaderboard();
   });
 
   alarmsApi.onAlarm.addListener((alarm) => {
@@ -114,7 +120,14 @@ import * as Constants from "../utils/constants";
    * Add an alarm if it doesn't exist
    */
   async function addLeaderboardAlarm() {
-    const alarm = await alarmsApi.get(Constants.LEADERBOARD_ALARM_NAME);
+    let alarm: chrome.alarms.Alarm | undefined = await alarmsApi.get(
+      Constants.LEADERBOARD_ALARM_NAME
+    );
+
+    if (alarm && alarm.periodInMinutes !== Constants.LEADERBOARD_ALARM_PERIOD) {
+      await alarmsApi.clear(Constants.LEADERBOARD_ALARM_NAME);
+      alarm = undefined;
+    }
 
     if (!alarm) {
       alarmsApi.create(Constants.LEADERBOARD_ALARM_NAME, {
@@ -122,4 +135,11 @@ import * as Constants from "../utils/constants";
       });
     }
   }
+
+  runtimeApi.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.m === Constants.REQUEST_FORCE_UPDATE_LEADERBOARD) {
+      fetchLeaderboard();
+      sendResponse();
+    }
+  });
 })(chrome);

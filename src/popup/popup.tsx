@@ -12,6 +12,7 @@ const Popup: React.FC<{}> = () => {
 
   const { sync: Storage } = storageApi;
 
+  const [initialized, setInitialized] = React.useState<boolean>(false);
   const [userData, setUserData] = React.useState<undefined | UserData>(
     undefined
   );
@@ -24,6 +25,7 @@ const Popup: React.FC<{}> = () => {
       Storage.get(["currentUserData", "leaderboardData"]).then((data) => {
         setUserData(data.currentUserData);
         setLeaderboardData(data.leaderboardData || {});
+        setInitialized(true);
       });
     }
   }, []);
@@ -89,7 +91,7 @@ const Popup: React.FC<{}> = () => {
             valueYField: field,
             valueXField: "date",
             tooltip: am5.Tooltip.new(root, {}),
-            connect: false,
+            connect: true,
           })
         );
 
@@ -171,40 +173,109 @@ const Popup: React.FC<{}> = () => {
 
   return (
     <Container>
-      <Grid
-        container
-        justifyContent={"space-between"}
+      <Box
         sx={{
+          display: "flex",
           pt: 2,
+          justifyContent: "space-between",
         }}
       >
         <Typography variant="h6">{runtimeApi.getManifest().name}</Typography>
-        <Link component="button" onClick={openLeaderboard}>
-          Open Leaderboard
-        </Link>
-      </Grid>
-      {userData ? (
-        <Typography
+        <Box
           sx={{
-            fontSize: "0.8rem",
-            color: "#666",
+            display: "flex",
+            gap: "4px",
+            alignItems: "center",
           }}
         >
-          Rank: {userData?.rank || "None"}
-        </Typography>
-      ) : (
-        <Link
-          href={Constants.WAKATIME_LOGIN}
-          target="_blank"
-          sx={{
-            mx: 3,
-          }}
-        >
-          Login
-        </Link>
-      )}
+          {userData ? (
+            <Typography
+              sx={{
+                fontSize: "0.8rem",
+                color: "#666",
+              }}
+            >
+              Rank: {userData?.rank || "None"}
+            </Typography>
+          ) : (
+            initialized && (
+              <Link href={Constants.WAKATIME_LOGIN} target="_blank">
+                Login
+              </Link>
+            )
+          )}
+          <Typography sx={{ color: "#999" }}>|</Typography>
+          <Link component="button" onClick={openLeaderboard}>
+            Open Leaderboard
+          </Link>
+        </Box>
+      </Box>
 
-      <Box id="chartdiv" className={userData ? "" : "empty"}></Box>
+      <Typography
+        sx={{
+          color: "#555",
+          fontSize: "12px",
+          textAlign: "end",
+        }}
+      >
+        Leaderboard rank could take upto a week to update.
+      </Typography>
+
+      <Box
+        id="chartdiv"
+        sx={{
+          width: "600px",
+          height: userData ? "400px" : "auto",
+          marginLeft: "-23px",
+          marginRight: "-25px",
+        }}
+      >
+        {initialized && !userData && (
+          <Box
+            sx={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "left",
+              flexDirection: "column",
+              padding: "10px 20px",
+            }}
+          >
+            <Typography
+              sx={{
+                alignSelf: "center",
+              }}
+            >
+              No Data Found
+            </Typography>
+            <Typography
+              sx={{
+                color: "#666",
+                fontSize: "0.8rem",
+              }}
+            >
+              Possible issues:
+            </Typography>
+            <Typography
+              sx={{
+                color: "#666",
+                fontSize: "0.8rem",
+              }}
+            >
+              - You are not logged in to WakaTime.
+            </Typography>
+            <Typography
+              sx={{
+                color: "#666",
+                fontSize: "0.8rem",
+              }}
+            >
+              - You are not on the leaderboard. Please open the leaderboard and
+              find your name.
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Container>
   );
 };
