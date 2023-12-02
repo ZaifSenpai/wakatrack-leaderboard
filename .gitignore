@@ -1,2 +1,8 @@
 dist
 node_modules
+
+.env.development.local
+
+_metadata
+.DS_Store
+.vscode
