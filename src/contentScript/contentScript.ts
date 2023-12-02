@@ -1,1 +1,3 @@
-// TODO: content script
+((context) => {
+  const { document, window, chrome } = context;
+})(window);
