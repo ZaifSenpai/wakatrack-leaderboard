@@ -1,5 +1,5 @@
 export const LEADERBOARD_ALARM_NAME = "leader-board-check";
-export const LEADERBOARD_ALARM_PERIOD = 60 * 60;
+export const LEADERBOARD_ALARM_PERIOD = 60; // In minutes: An hour
 
 export const WAKATIME_BASE_URL = "https://wakatime.com";
 export const WAKATIME_LEADERS_URL = WAKATIME_BASE_URL + "/api/v1/leaders";
