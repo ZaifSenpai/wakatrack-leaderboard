@@ -4,8 +4,9 @@ import "./popup.css";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
-import { Box, Container, Grid, Link, Typography } from "@mui/material";
+import { Box, Container, Link, Typography } from "@mui/material";
 import * as Constants from "../utils/constants";
+import { isValidLeaderboardJson } from "../utils/common";
 
 const Popup: React.FC<{}> = () => {
   const { storage: storageApi, runtime: runtimeApi, tabs: tabsApi } = chrome;
@@ -171,6 +172,42 @@ const Popup: React.FC<{}> = () => {
     });
   }
 
+  const exportData = () => {
+    Storage.get(["leaderboardData"]).then((data) => {
+      const leaderboardData = data.leaderboardData;
+      const dataStr =
+        "data:text/json;charset=utf-8," +
+        encodeURIComponent(JSON.stringify(leaderboardData));
+      const downloadAnchorNode = document.createElement("a");
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "wakatrack-leaderboard.json");
+      document.body.appendChild(downloadAnchorNode); // required for firefox
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    });
+  };
+
+  const importData = (e: React.ChangeEvent) => {
+    const fileReader = new FileReader();
+
+    fileReader.onload = (e: any) => {
+      try {
+        const leaderboardData = JSON.parse(e.target.result);
+        if (isValidLeaderboardJson(leaderboardData)) {
+          Storage.set({ leaderboardData });
+          setLeaderboardData(leaderboardData);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const files = (e.target as HTMLInputElement).files;
+    if (files?.length) {
+      fileReader.readAsText(files[0]);
+    }
+  };
+
   return (
     <Container>
       <Box
@@ -275,6 +312,42 @@ const Popup: React.FC<{}> = () => {
             </Typography>
           </Box>
         )}
+      </Box>
+
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: "10px",
+          right: "10px",
+          display: "flex",
+          gap: "4px",
+          alignItems: "center",
+        }}
+      >
+        <Link
+          onClick={exportData}
+          sx={{
+            cursor: "pointer",
+          }}
+        >
+          Export
+        </Link>
+        <Box
+          sx={{
+            borderLeft: "1px solid #ccc",
+            height: "20px",
+            margin: "0 5px",
+          }}
+        />
+        <Link
+          component="label"
+          sx={{
+            cursor: "pointer",
+          }}
+        >
+          Import
+          <input type="file" hidden accept=".json" onChange={importData} />
+        </Link>
       </Box>
     </Container>
   );
