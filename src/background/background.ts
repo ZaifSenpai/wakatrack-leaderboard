@@ -10,12 +10,12 @@ import * as Constants from "../utils/constants";
 
   const { sync: Storage } = storageApi;
 
-  chrome.runtime.onStartup.addListener(() => {
+  runtimeApi.onStartup.addListener(() => {
     addLeaderboardAlarm();
     updateBadgeText();
   });
 
-  chrome.runtime.onInstalled.addListener(() => {
+  runtimeApi.onInstalled.addListener(() => {
     addLeaderboardAlarm();
     updateBadgeText();
     fetchLeaderboard();
@@ -148,6 +148,14 @@ import * as Constants from "../utils/constants";
   runtimeApi.onMessage.addListener((request, sender, sendResponse) => {
     if (request.m === Constants.REQUEST_FORCE_UPDATE_LEADERBOARD) {
       fetchLeaderboard();
+      sendResponse();
+    } else if (request.m === Constants.REQUEST_CHECK_BADGE) {
+      actionApi.getBadgeText({}, (text) => {
+        if (!text) {
+          updateBadgeText();
+        }
+      });
+
       sendResponse();
     }
   });

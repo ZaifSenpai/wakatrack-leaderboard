@@ -4,14 +4,7 @@ import "./popup.css";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
-import {
-  Box,
-  Container,
-  IconButton,
-  Link,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, IconButton, Link, Tooltip, Typography } from "@mui/material";
 import * as Constants from "../utils/constants";
 import { isValidLeaderboardJson } from "../utils/common";
 import { OpenInNew, Person } from "@mui/icons-material";
@@ -37,6 +30,8 @@ const Popup: React.FC<{}> = () => {
         setInitialized(true);
       });
     }
+
+    runtimeApi.sendMessage({ m: Constants.REQUEST_CHECK_BADGE });
   }, []);
 
   useEffect(() => {
