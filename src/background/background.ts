@@ -32,7 +32,7 @@ import * as Constants from "../utils/constants";
       method: "GET",
     };
 
-    const response = await fetch(Constants.WAKATIME_LEADERS_URL, requestOptions)
+    const response = await fetch(Constants.WAKATIME_LEADERS_API, requestOptions)
       .then((r) => r.json())
       .catch((e) => {
         console.error(e);
