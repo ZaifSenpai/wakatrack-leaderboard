@@ -50,7 +50,7 @@ import * as Constants from "../utils/constants";
       let lastRank: number | null = null;
 
       for (let i = stats.length - 1; i >= 0; i--) {
-        if (stats[i].value !== undefined && lastRank !== rank) {
+        if (stats[i].value !== undefined && stats[i].value !== rank) {
           // lastRank can be null or number
           lastRank = stats[i].value;
           break;
