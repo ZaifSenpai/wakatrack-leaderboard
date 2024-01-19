@@ -4,9 +4,10 @@ import "./popup.css";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
-import { Box, Container, Link, Typography } from "@mui/material";
+import { Box, IconButton, Link, Tooltip, Typography } from "@mui/material";
 import * as Constants from "../utils/constants";
 import { isValidLeaderboardJson } from "../utils/common";
+import { OpenInNew, Person } from "@mui/icons-material";
 
 const Popup: React.FC<{}> = () => {
   const { storage: storageApi, runtime: runtimeApi, tabs: tabsApi } = chrome;
@@ -29,6 +30,8 @@ const Popup: React.FC<{}> = () => {
         setInitialized(true);
       });
     }
+
+    runtimeApi.sendMessage({ m: Constants.REQUEST_CHECK_BADGE });
   }, []);
 
   useEffect(() => {
@@ -110,15 +113,17 @@ const Popup: React.FC<{}> = () => {
         const tooltip = series.get("tooltip");
         tooltip?.label.set("text", "{valueX.formatDate()}: [bold]{valueY}");
 
-        chartData = (chartData || []).map((item: any) => {
-          if (item.value === null) {
-            delete item.value;
+        const _chartData = (chartData || []).map(
+          (item: Partial<RankRecord>) => {
+            if (typeof item.value !== "number") {
+              delete item.value;
+            }
+
+            return item;
           }
+        );
 
-          return item;
-        });
-
-        series.data.setAll(chartData);
+        series.data.setAll(_chartData);
 
         return series;
       }
@@ -166,12 +171,6 @@ const Popup: React.FC<{}> = () => {
     }
   }, [leaderboardData]);
 
-  function openLeaderboard() {
-    tabsApi.create({
-      url: Constants.WAKATIME_LEADERS + (userData?.page ? userData.page : ""),
-    });
-  }
-
   const exportData = () => {
     Storage.get(["leaderboardData"]).then((data) => {
       const leaderboardData = data.leaderboardData;
@@ -209,62 +208,111 @@ const Popup: React.FC<{}> = () => {
   };
 
   return (
-    <Container>
+    <Box
+      sx={{
+        pl: "10px",
+      }}
+    >
       <Box
         sx={{
           display: "flex",
           pt: 2,
           justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
         <Typography variant="h6">{runtimeApi.getManifest().name}</Typography>
         <Box
           sx={{
             display: "flex",
-            gap: "4px",
             alignItems: "center",
           }}
         >
-          {userData ? (
-            <Typography
+          {userData && (
+            <Box
               sx={{
-                fontSize: "0.8rem",
-                color: "#666",
+                display: "flex",
+                gap: "4px",
+                alignItems: "center",
               }}
             >
-              Rank: {userData?.rank || "None"}
-            </Typography>
-          ) : (
-            initialized && (
-              <Link href={Constants.WAKATIME_LOGIN} target="_blank">
-                Login
-              </Link>
-            )
+              <Tooltip title="Open Leaderboard">
+                <Link
+                  href={
+                    Constants.WAKATIME_LEADERS_BOARD +
+                    (userData.page ? userData.page : "")
+                  }
+                  target="_blank"
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  <Typography
+                    component={"span"}
+                    sx={{
+                      fontSize: "0.8rem",
+                      color: "#666",
+                    }}
+                  >
+                    Rank: {userData?.rank || "None"}
+                  </Typography>
+
+                  <OpenInNew
+                    htmlColor="#666"
+                    sx={{
+                      width: "16px",
+                      height: "16px",
+                    }}
+                  />
+                </Link>
+              </Tooltip>
+
+              <Typography sx={{ color: "#999" }}>|</Typography>
+
+              <Typography
+                sx={{
+                  fontSize: "0.8rem",
+                }}
+              >
+                {userData.user.username}
+              </Typography>
+            </Box>
           )}
-          <Typography sx={{ color: "#999" }}>|</Typography>
-          <Link component="button" onClick={openLeaderboard}>
-            Open Leaderboard
-          </Link>
+
+          <IconButton
+            href={
+              userData?.user
+                ? `${Constants.WAKATIME_BASE_URL}/@${userData.user.username}`
+                : Constants.WAKATIME_LOGIN
+            }
+            target="_blank"
+          >
+            {userData?.user?.photo ? (
+              <Box
+                component="img"
+                src={userData?.user.photo}
+                sx={{
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "50%",
+                }}
+              />
+            ) : (
+              <Person />
+            )}
+          </IconButton>
         </Box>
       </Box>
-
-      <Typography
-        sx={{
-          color: "#555",
-          fontSize: "12px",
-          textAlign: "end",
-        }}
-      >
-        Leaderboard rank could take upto a week to update.
-      </Typography>
 
       <Box
         id="chartdiv"
         sx={{
           width: "600px",
           height: userData ? "400px" : "auto",
-          marginLeft: "-23px",
-          marginRight: "-25px",
+          ml: "-23px",
+          mb: "16px",
         }}
       >
         {initialized && !userData && (
@@ -314,42 +362,44 @@ const Popup: React.FC<{}> = () => {
         )}
       </Box>
 
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: "10px",
-          right: "10px",
-          display: "flex",
-          gap: "4px",
-          alignItems: "center",
-        }}
-      >
-        <Link
-          onClick={exportData}
-          sx={{
-            cursor: "pointer",
-          }}
-        >
-          Export
-        </Link>
+      {userData?.user && (
         <Box
           sx={{
-            borderLeft: "1px solid #ccc",
-            height: "20px",
-            margin: "0 5px",
-          }}
-        />
-        <Link
-          component="label"
-          sx={{
-            cursor: "pointer",
+            position: "absolute",
+            bottom: "10px",
+            right: "10px",
+            display: "flex",
+            gap: "4px",
+            alignItems: "center",
           }}
         >
-          Import
-          <input type="file" hidden accept=".json" onChange={importData} />
-        </Link>
-      </Box>
-    </Container>
+          <Link
+            onClick={exportData}
+            sx={{
+              cursor: "pointer",
+            }}
+          >
+            Export
+          </Link>
+          <Box
+            sx={{
+              borderLeft: "1px solid #ccc",
+              height: "20px",
+              margin: "0 5px",
+            }}
+          />
+          <Link
+            component="label"
+            sx={{
+              cursor: "pointer",
+            }}
+          >
+            Import
+            <input type="file" hidden accept=".json" onChange={importData} />
+          </Link>
+        </Box>
+      )}
+    </Box>
   );
 };
 

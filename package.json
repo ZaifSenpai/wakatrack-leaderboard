@@ -4,6 +4,7 @@
   "description": "react chrome extension template",
   "scripts": {
     "start": "webpack --watch --progress --config webpack.dev.js",
+    "dev": "webpack --progress --config webpack.dev.js",
     "build": "webpack --progress --config webpack.prod.js",
     "clean": "rimraf dist"
   },
@@ -31,6 +32,7 @@
     "@amcharts/amcharts5": "^5.4.8",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.5",
     "@mui/material": "^5.14.11"
   }
 }

@@ -10,12 +10,12 @@ import * as Constants from "../utils/constants";
 
   const { sync: Storage } = storageApi;
 
-  chrome.runtime.onStartup.addListener(() => {
+  runtimeApi.onStartup.addListener(() => {
     addLeaderboardAlarm();
     updateBadgeText();
   });
 
-  chrome.runtime.onInstalled.addListener(() => {
+  runtimeApi.onInstalled.addListener(() => {
     addLeaderboardAlarm();
     updateBadgeText();
     fetchLeaderboard();
@@ -32,7 +32,7 @@ import * as Constants from "../utils/constants";
       method: "GET",
     };
 
-    const response = await fetch(Constants.WAKATIME_LEADERS_URL, requestOptions)
+    const response = await fetch(Constants.WAKATIME_LEADERS_API, requestOptions)
       .then((r) => r.json())
       .catch((e) => {
         console.error(e);
@@ -41,17 +41,26 @@ import * as Constants from "../utils/constants";
       });
 
     if (response.current_user) {
-      const { leaderboardData = {} } = await Storage.get(["leaderboardData"]);
+      const data = await Storage.get(["leaderboardData"]);
+      const leaderboardData: RanksHistory = data.leaderboardData || {};
       const rank = response.current_user.rank;
       const username = response.current_user.user.username;
 
       const stats = leaderboardData[username] || [];
+      let lastRank: number | null = null;
+
+      for (let i = stats.length - 1; i >= 0; i--) {
+        if (stats[i].value !== undefined && stats[i].value !== rank) {
+          // lastRank can be null or number
+          lastRank = stats[i].value;
+          break;
+        }
+      }
 
       Storage.set({
         currentUserData: {
           ...response.current_user,
-          lastRank:
-            stats.length > 0 ? stats[stats.length - 1].value : undefined,
+          lastRank,
         },
       });
 
@@ -139,6 +148,14 @@ import * as Constants from "../utils/constants";
   runtimeApi.onMessage.addListener((request, sender, sendResponse) => {
     if (request.m === Constants.REQUEST_FORCE_UPDATE_LEADERBOARD) {
       fetchLeaderboard();
+      sendResponse();
+    } else if (request.m === Constants.REQUEST_CHECK_BADGE) {
+      actionApi.getBadgeText({}, (text) => {
+        if (!text) {
+          updateBadgeText();
+        }
+      });
+
       sendResponse();
     }
   });
