@@ -1,0 +1,44 @@
+name: Build Stage
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run dev
+
+      - name: Renaming dist directory
+        run: |
+          REPO_NAME=$(echo ${{ github.repository }} | awk -F / '{print $2}')
+          BRANCH_NAME=$(echo ${{ github.ref }} | awk -F / '{print $3}')
+          NEW_NAME="$REPO_NAME-$BRANCH_NAME"
+          mv dist $NEW_NAME
+          echo "NEW_NAME=$NEW_NAME" >> $GITHUB_ENV
+
+      - name: Zip build directory
+        run: |
+          echo ${{ env.NEW_NAME }} \>\> ${{ env.NEW_NAME }}.zip
+          zip -r ${{ env.NEW_NAME }}.zip ${{ env.NEW_NAME }}
+
+      - name: Upload zip as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.NEW_NAME }}.zip
+          path: ${{ env.NEW_NAME }}.zip

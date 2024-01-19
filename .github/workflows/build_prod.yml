@@ -1,4 +1,4 @@
-name: Build & Zip
+name: Build Production
 
 on:
   workflow_dispatch:
@@ -19,10 +19,10 @@ jobs:
         uses: actions/setup-node@v2
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci
 
       - name: Build
-        run: yarn build
+        run: npm run build
 
       - name: Renaming dist directory
         run: |
@@ -33,9 +33,11 @@ jobs:
           echo "NEW_NAME=$NEW_NAME" >> $GITHUB_ENV
 
       - name: Zip build directory
-        run: zip -r ${{ env.NEW_NAME }}.zip ${{ env.NEW_NAME }}
+        run: |
+          echo ${{ env.NEW_NAME }} \>\> ${{ env.NEW_NAME }}.zip
+          zip -r ${{ env.NEW_NAME }}.zip ${{ env.NEW_NAME }}
 
-      - name: Upload build.zip as artifact
+      - name: Upload zip as artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ env.NEW_NAME }}.zip

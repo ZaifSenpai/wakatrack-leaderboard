@@ -4,6 +4,7 @@
   "description": "react chrome extension template",
   "scripts": {
     "start": "webpack --watch --progress --config webpack.dev.js",
+    "dev": "webpack --progress --config webpack.dev.js",
     "build": "webpack --progress --config webpack.prod.js",
     "clean": "rimraf dist"
   },
