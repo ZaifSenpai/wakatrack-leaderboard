@@ -41,17 +41,26 @@ import * as Constants from "../utils/constants";
       });
 
     if (response.current_user) {
-      const { leaderboardData = {} } = await Storage.get(["leaderboardData"]);
+      const data = await Storage.get(["leaderboardData"]);
+      const leaderboardData: RanksHistory = data.leaderboardData || {};
       const rank = response.current_user.rank;
       const username = response.current_user.user.username;
 
       const stats = leaderboardData[username] || [];
+      let lastRank: number | null = null;
+
+      for (let i = stats.length - 1; i >= 0; i--) {
+        if (stats[i].value !== undefined && lastRank !== rank) {
+          // lastRank can be null or number
+          lastRank = stats[i].value;
+          break;
+        }
+      }
 
       Storage.set({
         currentUserData: {
           ...response.current_user,
-          lastRank:
-            stats.length > 0 ? stats[stats.length - 1].value : undefined,
+          lastRank,
         },
       });
 

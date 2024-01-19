@@ -110,15 +110,17 @@ const Popup: React.FC<{}> = () => {
         const tooltip = series.get("tooltip");
         tooltip?.label.set("text", "{valueX.formatDate()}: [bold]{valueY}");
 
-        chartData = (chartData || []).map((item: any) => {
-          if (item.value === null) {
-            delete item.value;
+        const _chartData = (chartData || []).map(
+          (item: Partial<RankRecord>) => {
+            if (typeof item.value !== "number") {
+              delete item.value;
+            }
+
+            return item;
           }
+        );
 
-          return item;
-        });
-
-        series.data.setAll(chartData);
+        series.data.setAll(_chartData);
 
         return series;
       }

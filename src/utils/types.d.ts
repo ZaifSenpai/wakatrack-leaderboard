@@ -18,8 +18,10 @@ interface UserData {
 }
 
 interface RanksHistory {
-  [username: string]: {
-    date: number;
-    value: number;
-  }[];
+  [username: string]: RankRecord[];
+}
+
+interface RankRecord {
+  date: number;
+  value: number | null;
 }
