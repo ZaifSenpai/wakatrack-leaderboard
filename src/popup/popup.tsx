@@ -31,7 +31,7 @@ const Popup: React.FC<{}> = () => {
       });
     }
 
-    runtimeApi.sendMessage({ m: Constants.REQUEST_CHECK_BADGE });
+    runtimeApi.sendMessage({ m: Constants.REQUEST_FORCE_UPDATE_LEADERBOARD });
   }, []);
 
   useEffect(() => {
