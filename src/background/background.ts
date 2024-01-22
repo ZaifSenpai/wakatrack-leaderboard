@@ -28,6 +28,8 @@ import * as Constants from "../utils/constants";
   });
 
   async function fetchLeaderboard() {
+    updateBadgeText();
+
     const requestOptions = {
       method: "GET",
     };
@@ -64,6 +66,8 @@ import * as Constants from "../utils/constants";
         },
       });
 
+      let alreadyAdded = false;
+
       if (stats.length > 0) {
         const lastStat = stats[stats.length - 1];
 
@@ -71,28 +75,29 @@ import * as Constants from "../utils/constants";
           const lastStatDate = new Date(lastStat.date);
           const currentDate = new Date();
 
-          // If the last stat was recorded today, don't add a new one
+          // If the last stat was recorded within last 24 hours, do not add it
           if (
-            lastStatDate.getDate() === currentDate.getDate() &&
-            lastStatDate.getMonth() === currentDate.getMonth() &&
-            lastStatDate.getFullYear() === currentDate.getFullYear()
+            currentDate.getTime() - lastStatDate.getTime() <
+            24 * 60 * 60 * 1000
           ) {
-            return;
+            alreadyAdded = true;
           }
         }
       }
 
-      stats.push({
-        date: Date.now(),
-        value: rank,
-      });
+      if (!alreadyAdded) {
+        stats.push({
+          date: Date.now(),
+          value: rank,
+        });
 
-      Storage.set({
-        leaderboardData: {
-          ...leaderboardData,
-          [username]: stats,
-        },
-      });
+        Storage.set({
+          leaderboardData: {
+            ...leaderboardData,
+            [username]: stats,
+          },
+        });
+      }
 
       updateBadgeText();
     }
@@ -148,14 +153,6 @@ import * as Constants from "../utils/constants";
   runtimeApi.onMessage.addListener((request, sender, sendResponse) => {
     if (request.m === Constants.REQUEST_FORCE_UPDATE_LEADERBOARD) {
       fetchLeaderboard();
-      sendResponse();
-    } else if (request.m === Constants.REQUEST_CHECK_BADGE) {
-      actionApi.getBadgeText({}, (text) => {
-        if (!text) {
-          updateBadgeText();
-        }
-      });
-
       sendResponse();
     }
   });

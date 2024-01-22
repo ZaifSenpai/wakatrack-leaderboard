@@ -7,4 +7,3 @@ export const WAKATIME_LEADERS_BOARD = WAKATIME_BASE_URL + "/leaders?page=";
 export const WAKATIME_LOGIN = WAKATIME_BASE_URL + "/login";
 
 export const REQUEST_FORCE_UPDATE_LEADERBOARD = "force-update-leaderboard";
-export const REQUEST_CHECK_BADGE = "check-badge";
